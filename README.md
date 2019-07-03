@@ -3,7 +3,7 @@ This package provides an alternative, far quicker way of generating MWA primary 
 
 The speedup is enabled by pre-computing all of the beams of interest over the whole sky in coordinates of Hour Angle and Declination. Generating the primary beam for a particular observation is then simply a matter of deriving the HA and Dec. of each point of interest and interpolating.
 
-scripts for doing this pre-computation is included in the package. however if you are using standard frequencies (such as the GLEAM frequencies) it is likely that this precomputation has already been done for you. 
+Scripts for doing this pre-computation is included in the package. however if you are using standard frequencies (such as the GLEAM frequencies) it is likely that this precomputation has already been done for you. 
 
 ## Generating a primary beam for an existing fits image
 This can be done with `lookup_beam.py`. `lookup_beam.py -h` will provide useful documentation. In addition to a fits image file you will also need a lookup file (path provided on the command line or via a global variable), and a metafits file.
