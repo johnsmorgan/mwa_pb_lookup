@@ -12,6 +12,7 @@ from astropy.wcs import WCS
 from astropy.coordinates import Longitude
 from astropy import units as u
 
+
 def trap(n):
     """
     return normalised trapezium
@@ -91,8 +92,7 @@ def ra_to_ha(ra, lst):
     return Longitude((lst-ra)*u.deg, wrap_angle=180*u.deg).deg
 
 if __name__=='__main__':
-    #BEAM_PATH="/data/other/pb_lookup/ips_beams.hdf5"
-    BEAM_PATH="/data/other/pb_lookup/gleam_beams.hdf5"
+    PB_FILE = os.environ['MWA_PB_LOOKUP']
 
     parser = OptionParser(usage="usage: obsid suffix [out_prefix] [out_suffix]" +
                           """
@@ -123,7 +123,7 @@ if __name__=='__main__':
     parser.add_option("-c", "--chan_str", dest="chan_str", default=None, type="str", help="coarse channel string (e.g. 121-132)")
     parser.add_option("-f", "--freq_mhz", dest="freq_mhz", default=None, type="float", help="frequency in MHz")
     parser.add_option("-v", "--verbose", action="count", dest="verbose", help="-v info, -vv debug")
-    parser.add_option("--beam_path", default=BEAM_PATH, dest="beam_path", type="str", help="path to hdf5 file containing beams")
+    parser.add_option("--beam_path", default=PB_FILE, dest="beam_path", type="str", help="path to hdf5 file containing beams")
     parser.add_option("--metafits_suffix", default=".metafits", action="count", dest="verbose", help="-v info, -vv debug (default %default")
     parser.add_option("--delete", action="store_true", dest="delete", help="delete output files if they already exist")
 
