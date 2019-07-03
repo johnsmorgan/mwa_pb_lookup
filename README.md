@@ -14,7 +14,7 @@ At the time of writing, the MWA Embedded Primary Beam model published by [Sokolo
 
 Previous primary beam models have been used in the past, but these have now been superceded by the embedded model for several years.
 
-####traceability
+#### Traceability
 All fits files produced by this software currently carry the following metadata in the fits header:
 PBVER   = '02      '                                                            
 PBPATH  = '/PATH/TO/LOOKUP_FILE'
