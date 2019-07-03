@@ -92,7 +92,10 @@ def ra_to_ha(ra, lst):
     return Longitude((lst-ra)*u.deg, wrap_angle=180*u.deg).deg
 
 if __name__=='__main__':
-    PB_FILE = os.environ['MWA_PB_LOOKUP']
+    try:
+        PB_FILE = os.environ['MWA_PB_LOOKUP']
+    except KeyError:
+        PB_FILE = ""
 
     parser = OptionParser(usage="usage: obsid suffix [out_prefix] [out_suffix]" +
                           """
@@ -100,10 +103,13 @@ if __name__=='__main__':
 
                           --chan_str *or* --freq_mhz must be specified.
 
+                          A path to the lookup table must also be specified, either via --beam_path or via the global variable MWA_PB_LOOKUP.
+
                           If chan_str is specified, all beams within the frequency range specified are averaged together, with
                           edge channels given half weighting
 
                           if --freq_mhz is specified, the two beams closest to the given frequency are linearly interpolated.
+
 
                           input fits image is 
                             [obsid][suffix]
@@ -191,6 +197,12 @@ if __name__=='__main__':
     ra, dec = header_to_pixel_radec(header)
     logging.debug("convert to ha")
     ha = ra_to_ha(ra, lst)
+
+    # store metadata in fits header
+    hdus[0].header['PBVER'] = df.attrs['VERSION']
+    hdus[0].header['PBPATH'] = opts.beam_path
+    hdus[0].header['PBLST'] = lst
+    hdus[0].header['PBGRIDN'] = gridnum
 
     # get values for each fits image pix
     logging.debug("interpolating beams for XX")
