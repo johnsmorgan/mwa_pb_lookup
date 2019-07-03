@@ -5,21 +5,14 @@ MWA embedded primary beam model (Sokolowski 2017) is only calculated for the cen
 the beams for the two neighbouring coarse channels are averaged together with equal weighting.
 
 """
-import sys
-import re
 import json
 import numpy as np
-from astropy.wcs import WCS
-from astropy.io import fits
-from scipy.interpolate import RectBivariateSpline
 
-from glob import glob
-from matplotlib import pyplot as plt
 from h5py import File
-from sweet_dict import delays, sweetspot_number
+from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
-OUT_FILE="/data/other/pb_lookup/gleam_jones.hdf5"
+OUT_FILE="gleam_jones.hdf5"
 
 LAT = -26.7
 CHANS = ( 56,  57, # bottom edge of GLEAM 69

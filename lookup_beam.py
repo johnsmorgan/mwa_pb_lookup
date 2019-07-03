@@ -26,8 +26,8 @@ def coarse_range(chans, coarse_str):
     int_chans = [int(c) for c in coarse_str.split("-")]
     edge_freq_hz = (int_chans[0]*1280000-640000, int_chans[1]*1280000+640000)
 
-    lower = np.argwhere(chans==edge_freq_hz[0]).flatten()
-    upper = np.argwhere(chans==edge_freq_hz[1]).flatten()
+    lower = np.argwhere(chans == edge_freq_hz[0]).flatten()
+    upper = np.argwhere(chans == edge_freq_hz[1]).flatten()
     if len(lower) == 0:
         raise IndexError, "No match for lower coarse chan %d" % int_chans[0]
     if len(upper) == 0:
@@ -91,7 +91,7 @@ def header_to_pixel_radec(header):
 def ra_to_ha(ra, lst):
     return Longitude((lst-ra)*u.deg, wrap_angle=180*u.deg).deg
 
-if __name__=='__main__':
+if __name__ == '__main__':
     try:
         PB_FILE = os.environ['MWA_PB_LOOKUP']
     except KeyError:
