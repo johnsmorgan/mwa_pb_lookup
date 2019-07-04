@@ -12,6 +12,8 @@ from astropy.wcs import WCS
 from astropy.coordinates import Longitude
 from astropy import units as u
 
+N_POL=2
+POLS = ("XX", "YY")
 
 def trap(n):
     """
@@ -71,14 +73,17 @@ def tidy_spline(spline, dtype):
     return inner
 
 def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
+    assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 2 polarisations. Not an XX/YY file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
                      axis=0)
     # Note that according to the docs, x, y should be
     # "1-D arrays of coordinates in strictly ascending order."
     # However this seems to work
-    beam_x = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[0])
-    beam_y = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[1])
-    return tidy_spline(beam_x, np.float32), tidy_spline(beam_y, np.float32)
+    beams = {}
+    for p, pol in enumerate(POLS):
+        b = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[p])
+        beams[pol] = tidy_spline(b, np.float32)
+    return beams
 
 def header_to_pixel_radec(header):
     wcs = WCS(header)
@@ -159,18 +164,13 @@ if __name__ == '__main__':
     elif opts.verbose > 1:
         logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
 
-    out_x = "%sXX%s" % (out_prefix, out_suffix)
-    if os.path.exists(out_x):
-        if opts.delete:
-            os.remove(out_x)
-        else:
-            raise RuntimeError, "%s exists" % out_x
-    out_y = "%sYY%s" % (out_prefix, out_suffix)
-    if os.path.exists(out_y):
-        if opts.delete:
-            os.remove(out_y)
-        else:
-            raise RuntimeError, "%s exists" % out_y
+    for pol in POLS:
+        out = "%s%s%s" % (out_prefix, pol, out_suffix)
+        if os.path.exists(out):
+            if opts.delete:
+                os.remove(out)
+            else:
+                raise RuntimeError, "%s exists" % out
 
     # get metadata
     logging.debug("getting metadata")
@@ -183,12 +183,12 @@ if __name__ == '__main__':
         low_index, n_chan = coarse_range(df['chans'][...], opts.chan_str)
         weights = trap(n_chan)
         logging.info("averaging channels %s Hz with weights %s", df['chans'][low_index:low_index+n_chan], weights)
-        beam_x, beam_y = get_avg_beam_spline(df, low_index, n_chan, weights)
+        beams = get_avg_beam_spline(df, low_index, n_chan, weights)
     else:
         low_index, weight1 = mhz_to_index_weight(df['chans'][...], opts.freq_mhz)
         weights = np.array((weight1, 1-weight1))
         logging.info("averaging channels %s Hz with weights %s", df['chans'][low_index:low_index+2], weights)
-        beam_x, beam_y = get_avg_beam_spline(df, low_index, 2, weights)
+        beams = get_avg_beam_spline(df, low_index, N_POL, weights)
 
     hdus = fits.open(obsid+suffix)
     header = hdus[0].header
@@ -205,12 +205,9 @@ if __name__ == '__main__':
     hdus[0].header['PBGRIDN'] = gridnum
 
     # get values for each fits image pix
-    logging.debug("interpolating beams for XX")
-    hdus[0].data = beam_x(dec, ha, data.shape)
-    logging.debug("writing XX beam to disk")
-    hdus.writeto(out_x)
-    logging.debug("interpolating beams for YY")
-    hdus[0].data = beam_y(dec, ha, data.shape)
-    logging.debug("writing YY beam to disk")
-    hdus.writeto(out_y)
+    for pol in POLS:
+        logging.debug("interpolating beams for %s" % pol)
+        hdus[0].data = beams[pol](dec, ha, data.shape)
+        logging.debug("writing %s beam to disk" % pol)
+        hdus.writeto("%s%s%s" % (out_prefix, pol, out_suffix))
     logging.debug("finished")
