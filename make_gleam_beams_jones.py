@@ -153,6 +153,3 @@ with File(OUT_FILE) as df:
                 data[s, f//2, ...] = (d1 + d2)/2
             else:
                 d2[:, up] = jones.swapaxes(0, 1)
-            if f==1:
-                break
-        break
