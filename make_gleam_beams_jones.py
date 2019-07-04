@@ -15,6 +15,12 @@ from sweet_dict import delays
 from primary_beam import MWA_Tile_full_EE
 OUT_FILE=os.path.join(sys.argv[1], "gleam_jones.hdf5")
 
+ZENITHNORM = True
+POWER = False
+JONES = True
+INTERP = False
+AREA_NORM = False
+
 LAT = -26.7
 CHANS = ( 56,  57, # bottom edge of GLEAM 69
           62,  63,
@@ -87,6 +93,12 @@ with File(OUT_FILE) as df:
     # actual beam data
     data = df.create_dataset('beams', beam_shape, chunks=chunks, compression='lzf', shuffle=True, dtype=np.complex64)
     # various metadata
+    df.attrs['BIBCODE'] = '2017PASA...34...62S'
+    df.attrs['VERSION'] = '02'
+    df['beams'].attrs['zenithnorm'] = True
+    df['beams'].attrs['power'] = True
+    df['beams'].attrs['jones'] = True
+    df['beams'].attrs['interp'] = False
     df['beams'].dims[0].label = 'beam'
     df.create_dataset('sweetspot_number', data=SWEETSPOTS)
     df['beams'].dims.create_scale(df['sweetspot_number'])
@@ -106,6 +118,11 @@ with File(OUT_FILE) as df:
     df.create_dataset('ha_scale', data=ha_scale)
     df['beams'].dims.create_scale(df['ha_scale'])
     df['beams'].dims[3].attach_scale(df['ha_scale'])
+    df['beams'].attrs['zenithnorm'] = ZENITHNORM
+    df['beams'].attrs['power'] = POWER
+    df['beams'].attrs['jones'] = JONES
+    df['beams'].attrs['interp'] = INTERP
+    df['beams'].attrs['area_norm'] = AREA_NORM
 
     df.create_dataset('delays', data=np.array([delays[i] for i in SWEETSPOTS], dtype=np.uint8))
 
@@ -128,8 +145,8 @@ with File(OUT_FILE) as df:
             # We reshape it to have just 2 dimensions
             jones = MWA_Tile_full_EE([theta], [phi],
                                      freq=freq, delays=delays[s],
-                                     zenithnorm=True, power=False,
-                                     jones=True, interp=False).reshape(len(theta), N_POL)
+                                     zenithnorm=ZENITHNORM, power=POWER,
+                                     jones=JONES, interp=INTERP).reshape(len(theta), N_POL)
             print jones.shape
             if f % 2:
                 d1[:, up] = jones.swapaxes(0, 1)
