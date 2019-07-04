@@ -3,6 +3,8 @@ This package provides an alternative, far quicker way of generating MWA primary 
 
 The speedup is enabled by using the standard code to pre-compute all of the beams of interest over the whole sky in coordinates of Hour Angle and Declination. Generating the primary beam for a particular observation is then simply a matter of deriving the HA and Dec. of each point of interest and interpolating.
 
+Users should cite the [MWA primary beam paper](http://adsabs.harvard.edu/abs/2017PASA...34...62S) for the beam model the corrections are ultimately derived from. 
+
 ## Lookup files
 The precomputed beams are stored in hdf5 format. Example scripts for doing the pre-computation are included in the package.  They may be either 'XX' and 'YY' power beams, or Jones matrices.
 
