@@ -122,6 +122,9 @@ with File(OUT_FILE) as df:
             print freq
             #if azel[0] > 45:
             #    continue
+            # theta and phi *must* be 2d arrays, hence square brackets
+            # With jones=False (default)  MWA_Tile_full_EE returns
+            # two arrays, both of shape of input theta and phi
             rx ,ry = MWA_Tile_full_EE([theta], [phi],
                                        freq=freq, delays=delays[s],
                                        zenithnorm=True, power=True,
