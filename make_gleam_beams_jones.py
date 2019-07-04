@@ -1,10 +1,11 @@
 """
-Make all-sky XX and YY power beams for edge of all GLEAM sub-bands and similar for coarse channels typically used for observations around 300MHz.
+Make all-sky jones matrices for edge of all GLEAM sub-bands and similar for coarse channels typically used for observations around 300MHz.
 
 MWA embedded primary beam model (Sokolowski 2017) is only calculated for the centre of each coarse channel. In order to approximate the band edge,
 the beams for the two neighbouring coarse channels are averaged together with equal weighting.
 
 """
+import os, sys
 import json
 import numpy as np
 
@@ -12,7 +13,7 @@ from h5py import File
 from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
-OUT_FILE="gleam_jones.hdf5"
+OUT_FILE=os.path.join(sys.argv[1], "gleam_jones.hdf5")
 
 LAT = -26.7
 CHANS = ( 56,  57, # bottom edge of GLEAM 69
@@ -119,13 +120,22 @@ with File(OUT_FILE) as df:
             print freq
             #if azel[0] > 45:
             #    continue
+
+            # theta and phi *must* be 2d arrays, hence square brackets
+            # With jones=False (default) MWA_Tile_full_EE returns 
+            # a single array. slowest axes are [theta].shape
+            # fastest axes are [2, 2] (the jones matrices)
+            # We reshape it to have just 2 dimensions
             jones = MWA_Tile_full_EE([theta], [phi],
                                      freq=freq, delays=delays[s],
-                                     zenithnorm=True, power=True,
-                                     jones=True, interp=False).reshape(N_POL, len(theta))
+                                     zenithnorm=True, power=False,
+                                     jones=True, interp=False).reshape(len(theta), N_POL)
             print jones.shape
             if f % 2:
-                d1[:, up] = jones
+                d1[:, up] = jones.swapaxes(0, 1)
                 data[s, f//2, ...] = (d1 + d2)/2
             else:
-                d2[:, up] = jones
+                d2[:, up] = jones.swapaxes(0, 1)
+            if f==1:
+                break
+        break
