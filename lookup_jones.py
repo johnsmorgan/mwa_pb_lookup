@@ -100,7 +100,7 @@ if __name__ == '__main__':
     elif opts.verbose > 1:
         logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
 
-    for p, pol in enumerate(POLS):
+    for pol in POLS:
         for c in ('r', 'i'):
             out = "%s%s%s%s" % (out_prefix, pol, c, out_suffix)
             if os.path.exists(out):
