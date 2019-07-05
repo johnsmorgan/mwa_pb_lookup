@@ -13,7 +13,7 @@ from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_
 N_POL=4
 POLS = ("xx", "xy", "yx", "yy")
 
-def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
+def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     assert beam_file['beams'].shape[2] == 4, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
                      axis=0)
@@ -120,12 +120,12 @@ if __name__ == '__main__':
         low_index, n_chan = coarse_range(df['chans'][...], opts.chan_str)
         weights = trap(n_chan)
         logging.info("averaging channels %s Hz with weights %s", df['chans'][low_index:low_index+n_chan], weights)
-        beams = get_avg_beam_spline(df, low_index, n_chan, weights)
+        beams = get_avg_beam_spline(df, gridnum, low_index, n_chan, weights)
     else:
         low_index, weight1 = mhz_to_index_weight(df['chans'][...], opts.freq_mhz)
         weights = np.array((weight1, 1-weight1))
         logging.info("averaging channels %s Hz with weights %s", df['chans'][low_index:low_index+2], weights)
-        beams = get_avg_beam_spline(df, low_index, 2, weights)
+        beams = get_avg_beam_spline(df, gridnum, low_index, 2, weights)
 
     hdus = fits.open(obsid+suffix)
     header = hdus[0].header
