@@ -21,7 +21,6 @@ JONES = True
 INTERP = False
 AREA_NORM = False
 
-LAT = -26.7
 CHANS = ( 56,  57, # bottom edge of GLEAM 69
           62,  63,
           68,  69,
@@ -61,31 +60,22 @@ SWEETSPOTS = range(197)
 sweet_dict = json.load(open("sweetspots.json"))
 delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
 assert sorted(delays.keys()) == SWEETSPOTS
-# Generate grid of all HA and Declination coordinates
-ha_scale = np.linspace(-179.5, 179.5, 360) #this has the advantage of avoiding the singularities at 0 and 180 degrees
-dec_scale = np.linspace(-90, 90, 181)
-has, decs = np.meshgrid(ha_scale, dec_scale)
-
-# figure out corresponding azimuth and elevation
-# for simplicity, use basic trig rather than trying to construct a time when RA0h is precisely on the meridian.
-alt = np.degrees(np.arcsin(np.sin(np.radians(decs))*np.sin(np.radians(LAT)) + np.cos(np.radians(decs))*np.cos(np.radians(LAT))*np.cos(np.radians(has))))
-# NB This doesn't quite work for HA = 180deg 
-az = np.degrees(np.arccos((np.sin(np.radians(decs)) - np.sin(np.radians(alt))*np.sin(np.radians(LAT)))/(np.cos(np.radians(alt))*np.cos(np.radians(LAT)))))
-az = np.where(np.sin(np.radians(has)) < 0, az, 360-az)
-print alt.shape
-print az.shape
+# Generate grid of all Az and El coordinates
+az_scale = np.linspace(0, 360, 360)
+#NB we could make this linear in cos(alt) (\equiv sin(zenith angle), however with 100 points we jump from 0-8 degrees altitude, which seems a little too coarse!
+#cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
+#alt_scale = np.arccos(cosalt_scale)
+alt_scale = np.linspace(0, 90, 90) # cos of altitude (also sin of zenith angle)
+az, alt = np.meshgrid(az_scale, salt_scale)
 
 num_unique_beams = len(SWEETSPOTS)
 #num_unique_beams = N
 beam_shape = [num_unique_beams, len(FREQS), N_POL] + list(az.shape)
 chunks = tuple([1, 1, N_POL] + list(az.shape))
 
-# pick out just those pixels that are above the horizon
-up = alt > 0
-
 # theta phi (and rX, rY) are 1D arrays.
-theta = (np.pi/2) - np.radians(alt[up])
-phi = np.radians(az[up])
+theta = (np.pi/2) - np.radians(alt)
+phi = np.radians(az)
 #theta = (np.pi/2) - np.radians(alt.ravel())
 #phi = np.radians(alt.ravel())
 
@@ -109,15 +99,15 @@ with File(OUT_FILE) as df:
     df['beams'].dims.create_scale(df['sweetspot_number'])
     df['beams'].dims[0].attach_scale(df['sweetspot_number'])
 
-    df['beams'].dims[2].label = 'dec'
-    df.create_dataset('dec_scale', data=dec_scale)
-    df['beams'].dims.create_scale(df['dec_scale'])
-    df['beams'].dims[2].attach_scale(df['dec_scale'])
+    df['beams'].dims[2].label = 'alt'
+    df.create_dataset('alt_scale', data=alt_scale)
+    df['beams'].dims.create_scale(df['alt_scale'])
+    df['beams'].dims[2].attach_scale(df['alt_scale'])
 
-    df['beams'].dims[3].label = 'ha'
-    df.create_dataset('ha_scale', data=ha_scale)
-    df['beams'].dims.create_scale(df['ha_scale'])
-    df['beams'].dims[3].attach_scale(df['ha_scale'])
+    df['beams'].dims[3].label = 'az'
+    df.create_dataset('az_scale', data=ha_scale)
+    df['beams'].dims.create_scale(df['az_scale'])
+    df['beams'].dims[3].attach_scale(df['az_scale'])
     df['beams'].attrs['zenithnorm'] = ZENITHNORM
     df['beams'].attrs['power'] = POWER
     df['beams'].attrs['jones'] = JONES
@@ -131,7 +121,6 @@ with File(OUT_FILE) as df:
     d2 = np.nan*np.ones(shape, dtype=np.complex64)
     # generate beams
     for s in SWEETSPOTS:
-    #for s in range(N):
         print "Sweetspot %d" % s
         for f, freq in enumerate(CHAN_FREQS):
             print freq
@@ -149,7 +138,7 @@ with File(OUT_FILE) as df:
                                      jones=JONES, interp=INTERP).reshape(len(theta), N_POL)
             print jones.shape
             if f % 2:
-                d1[:, up] = jones.swapaxes(0, 1)
+                d1 = jones.swapaxes(0, 1)
                 data[s, f//2, ...] = (d1 + d2)/2
             else:
-                d2[:, up] = jones.swapaxes(0, 1)
+                d2 = jones.swapaxes(0, 1)
