@@ -96,7 +96,7 @@ if __name__ == '__main__':
                     raise RuntimeError, "beam dataset already exists and no_overwrite set!"
                 logging.warn("beam dataset already exists")
                 beam = group['beam']
-                assert beam.shape == beam_shape, "beam shape is incorrect"
+                assert beam.shape == tuple(beam_shape), "beam shape is incorrect"
             logging.debug("hdf5 beam shape %s" % beam_shape)
             low_index, n_chan = coarse_range(df['chans'][...], groupname)
             weights = trap(n_chan)
@@ -116,13 +116,13 @@ if __name__ == '__main__':
                 beam.attrs['PBGRIDN'] = gridnum
 
             # get values for each fits image pix
-            for pol in POLS:
+            for p, pol in enumerate(POLS):
                 logging.debug("interpolating beams for %s" % pol)
                 #FIXME need to figure out dimensions!!!!
                 interp_beam = beams[pol](dec, ha, beam_shape[1:])
                 if not opts.dry_run:
                     logging.debug("writing %s beam to disk" % pol)
-                    beam[0] = interp_beam
+                    beam[p] = interp_beam
                 if opts.plot == True:
                     logging.debug("plotting %s" % pol)
                     plot_beam(interp_beam.reshape(beam_shape[1:3]), imstack_in.replace('.', '_')+'_beam_'+pol+'.png')
