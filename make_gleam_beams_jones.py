@@ -59,6 +59,7 @@ SWEETSPOTS = range(197)
 
 sweet_dict = json.load(open("sweetspots.json"))
 delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
+print delays
 assert sorted(delays.keys()) == SWEETSPOTS
 # Generate grid of all Az and El coordinates
 az_scale = np.linspace(0, 360, 360)
@@ -66,7 +67,7 @@ az_scale = np.linspace(0, 360, 360)
 #cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
 #alt_scale = np.arccos(cosalt_scale)
 alt_scale = np.linspace(0, 90, 90) # cos of altitude (also sin of zenith angle)
-az, alt = np.meshgrid(az_scale, salt_scale)
+az, alt = np.meshgrid(az_scale, alt_scale)
 
 num_unique_beams = len(SWEETSPOTS)
 #num_unique_beams = N
@@ -74,10 +75,10 @@ beam_shape = [num_unique_beams, len(FREQS), N_POL] + list(az.shape)
 chunks = tuple([1, 1, N_POL] + list(az.shape))
 
 # theta phi (and rX, rY) are 1D arrays.
-theta = (np.pi/2) - np.radians(alt)
-phi = np.radians(az)
-#theta = (np.pi/2) - np.radians(alt.ravel())
-#phi = np.radians(alt.ravel())
+#theta = ((np.pi/2) - np.radians(alt)).ravel
+#phi = np.radians(az)
+theta = (np.pi/2) - np.radians(alt.ravel())
+phi = np.radians(alt.ravel())
 
 with File(OUT_FILE) as df:
     # actual beam data
@@ -94,10 +95,10 @@ with File(OUT_FILE) as df:
     df['beams'].dims.create_scale(df['sweetspot_number'])
     df['beams'].dims[0].attach_scale(df['sweetspot_number'])
 
-    df['beams'].dims[0].label = 'chans'
+    df['beams'].dims[1].label = 'chans'
     df.create_dataset('chans', data=FREQS)
-    df['beams'].dims.create_scale(df['sweetspot_number'])
-    df['beams'].dims[0].attach_scale(df['sweetspot_number'])
+    df['beams'].dims.create_scale(df['chans'])
+    df['beams'].dims[1].attach_scale(df['chans'])
 
     df['beams'].dims[2].label = 'alt'
     df.create_dataset('alt_scale', data=alt_scale)
@@ -105,7 +106,7 @@ with File(OUT_FILE) as df:
     df['beams'].dims[2].attach_scale(df['alt_scale'])
 
     df['beams'].dims[3].label = 'az'
-    df.create_dataset('az_scale', data=ha_scale)
+    df.create_dataset('az_scale', data=az_scale)
     df['beams'].dims.create_scale(df['az_scale'])
     df['beams'].dims[3].attach_scale(df['az_scale'])
     df['beams'].attrs['zenithnorm'] = ZENITHNORM
@@ -124,6 +125,7 @@ with File(OUT_FILE) as df:
         print "Sweetspot %d" % s
         for f, freq in enumerate(CHAN_FREQS):
             print freq
+            print delays[s]
             #if azel[0] > 45:
             #    continue
 
@@ -138,7 +140,7 @@ with File(OUT_FILE) as df:
                                      jones=JONES, interp=INTERP).reshape(len(theta), N_POL)
             print jones.shape
             if f % 2:
-                d1 = jones.swapaxes(0, 1)
+                d1 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
                 data[s, f//2, ...] = (d1 + d2)/2
             else:
-                d2 = jones.swapaxes(0, 1)
+                d2 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
