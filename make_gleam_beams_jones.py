@@ -8,7 +8,7 @@ the beams for the two neighbouring coarse channels are averaged together with eq
 import os
 import json
 import numpy as np
-from optparse import OptionParser #NB zeus does not have argparse!
+from optparse import OptionParser
 
 from h5py import File
 from sweet_dict import delays
