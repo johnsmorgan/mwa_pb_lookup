@@ -5,13 +5,16 @@ MWA embedded primary beam model (Sokolowski 2017) is only calculated for the cen
 the beams for the two neighbouring coarse channels are averaged together with equal weighting.
 
 """
+import os
 import json
 import numpy as np
+from optparse import OptionParser
 
 from h5py import File
 from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
+OUT_FILE_DEFAULT="gleam_xx_yy.hdf5"
 
 parser = OptionParser(usage="generate jones beams")
 parser.add_option("-n", "--dry_run", action="store_true", dest="dry_run", help="don't write to file")
@@ -91,19 +94,15 @@ else:
 
 with File(OUT_FILE, mode=mode) as df:
     if not opts.dry_run:
-    # actual beam data
-    data = df.create_dataset('beams', beam_shape, chunks=chunks, compression='lzf', shuffle=True)
-    # various metadata
-    df.attrs['BIBCODE'] = '2017PASA...34...62S'
-    df.attrs['VERSION'] = '02'
-    df['beams'].attrs['zenithnorm'] = True
-    df['beams'].attrs['power'] = True
-    df['beams'].attrs['jones'] = True
-    df['beams'].attrs['interp'] = False
-    df['beams'].dims[0].label = 'beam'
-    df.create_dataset('sweetspot_number', data=SWEETSPOTS)
-    df['beams'].dims.create_scale(df['sweetspot_number'])
-    df['beams'].dims[0].attach_scale(df['sweetspot_number'])
+        # actual beam data
+        data = df.create_dataset('beams', beam_shape, chunks=chunks, compression='lzf', shuffle=True)
+        # various metadata
+        df.attrs['BIBCODE'] = '2017PASA...34...62S'
+        df.attrs['VERSION'] = '02'
+        df['beams'].dims[0].label = 'beam'
+        df.create_dataset('sweetspot_number', data=SWEETSPOTS)
+        df['beams'].dims.create_scale(df['sweetspot_number'])
+        df['beams'].dims[0].attach_scale(df['sweetspot_number'])
 
         df['beams'].dims[1].label = 'chans'
         df.create_dataset('chans', data=FREQS)
@@ -125,7 +124,7 @@ with File(OUT_FILE, mode=mode) as df:
         df['beams'].attrs['interp'] = INTERP
         df['beams'].attrs['area_norm'] = AREA_NORM
 
-    df.create_dataset('delays', data=np.array([delays[i] for i in SWEETSPOTS], dtype=np.uint8))
+        df.create_dataset('delays', data=np.array([delays[i] for i in SWEETSPOTS], dtype=np.uint8))
 
     shape = beam_shape[3:]
     d1 = np.nan*np.ones(shape)
@@ -147,13 +146,13 @@ with File(OUT_FILE, mode=mode) as df:
             rx ,ry = MWA_Tile_full_EE([theta], [phi],
                                        freq=freq, delays=delays[s],
                                        zenithnorm=ZENITHNORM, power=POWER,
-                                       jones=JONES, interp=INTERP).reshape(len(theta), N_POL)
+                                       jones=JONES, interp=INTERP)
             print rx.shape
             if f % 2:
-                d1[up] = rx[0]
-                d2[up] = ry[0]
+                d1 = rx[0].reshape(shape)
+                d2 = ry[0].reshape(shape)
                 data[s, f//2, 0, ...] = (d1 + d3)/2
                 data[s, f//2, 1, ...] = (d2 + d4)/2
             else:
-                d3[up] = rx[0]
-                d4[up] = ry[0]
+                d3 = rx[0].reshape(shape)
+                d4 = ry[0].reshape(shape)
