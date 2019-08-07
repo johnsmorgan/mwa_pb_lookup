@@ -212,7 +212,7 @@ if __name__ == '__main__':
     data = hdus[0].data
     logging.debug("calculate pixel ra, dec")
     ra, dec = header_to_pixel_radec(header)
-    logging.debug("convert to ha")
+    logging.debug("convert to az el")
     alt, az = radec_to_altaz(ra, dec, t)
 
     # store metadata in fits header

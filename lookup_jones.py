@@ -14,7 +14,7 @@ N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
 
 def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
-    assert beam_file['beams'].shape[2] == 4, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
+    assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
                      axis=0)
     # Note that according to the docs, x, y should be
@@ -125,14 +125,14 @@ if __name__ == '__main__':
         low_index, weight1 = mhz_to_index_weight(df['chans'][...], opts.freq_mhz)
         weights = np.array((weight1, 1-weight1))
         logging.info("averaging channels %s Hz with weights %s", df['chans'][low_index:low_index+2], weights)
-        beams = get_avg_beam_spline(df, low_index, 2, weights)
+        beams = get_avg_beam_spline(df, low_index, N_POL, weights)
 
     hdus = fits.open(obsid+suffix)
     header = hdus[0].header
     data = hdus[0].data
     logging.debug("calculate pixel ra, dec")
     ra, dec = header_to_pixel_radec(header)
-    logging.debug("convert to ha")
+    logging.debug("convert to az el")
     alt, az = radec_to_altaz(ra, dec, t)
 
     # store metadata in fits header
