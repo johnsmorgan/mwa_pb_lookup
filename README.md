@@ -29,7 +29,7 @@ All fits files produced by this software currently carry the following metadata 
 ```
 PBVER   = '02      '                                                            
 PBPATH  = '/PATH/TO/LOOKUP_FILE'
-PBLST   =    Local sidereal time used to generate the primary beam
+PBTIME   =    UTC used to generate the primary beam
 PBGRIDN =    'GRIDNUM' or 'sweetspot number' of the beamformer delay settings used for the beam. 
 ```
 The lookup file contains much more detailed information on other parameters that may have some effect on the beam produced (such as the resolution of the interpolation grid). Additionally, all parameters which were used when `primary_beam.MWA_Tile_full_EE` was called are included in the metadata of the file: e.g.
