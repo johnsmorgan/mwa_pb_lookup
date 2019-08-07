@@ -8,13 +8,13 @@ from optparse import OptionParser #NB zeus does not have argparse!
 from scipy.interpolate import RectBivariateSpline
 
 from astropy.io import fits
-from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, ra_to_ha
+from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, radec_to_altaz
 
-N_POL=4
+N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
 
-def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
-    assert beam_file['beams'].shape[2] == 4, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
+def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
+    assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
                      axis=0)
     # Note that according to the docs, x, y should be
@@ -25,9 +25,9 @@ def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
         beams[pol] = {}
         for comp in ('r', 'i'):
             if comp == 'r':
-                b = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[p].real)
+                b = RectBivariateSpline(x=beam_file['alt_scale'][...], y=beam_file['az_scale'][...], z=beam_xy[p].real)
             else:
-                b = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[p].imag)
+                b = RectBivariateSpline(x=beam_file['alt_scale'][...], y=beam_file['az_scale'][...], z=beam_xy[p].imag)
             beams[pol][comp] = tidy_spline(b, np.float32)
     return beams
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     # get metadata
     logging.debug("getting metadata")
-    gridnum, lst = get_meta(obsid)
+    gridnum, t = get_meta(obsid)
 
     #open beam file
     logging.debug("generate spline from beam file")
@@ -132,21 +132,21 @@ if __name__ == '__main__':
     data = hdus[0].data
     logging.debug("calculate pixel ra, dec")
     ra, dec = header_to_pixel_radec(header)
-    logging.debug("convert to ha")
-    ha = ra_to_ha(ra, lst)
+    logging.debug("convert to az el")
+    alt, az = radec_to_altaz(ra, dec, t)
 
     # store metadata in fits header
     hdus[0].header['PBVER'] = df.attrs['VERSION']
     hdus[0].header['PBPATH'] = opts.beam_path
-    hdus[0].header['PBLST'] = lst
+    hdus[0].header['PBTIME'] = t.isot
     hdus[0].header['PBGRIDN'] = gridnum
 
     # get values for each fits image pix
     for p, pol in enumerate(POLS):
         for comp in ('r', 'i'):
-            logging.debug("interpolating beams for %s%s" % (pol, comp))
-            beam = beams[pol][comp](dec, ha, data.shape)
-            logging.debug("writing %s%s beam to disk" % (pol, comp))
+            logging.debug("interpolating beams for %s%s", pol, comp)
+            beam = beams[pol][comp](alt, az, data.shape)
+            logging.debug("writing %s%s beam to disk", pol, comp)
             hdus[0].data = beam
             hdus.writeto("%s%s%s%s" % (out_prefix, pol, comp, out_suffix))
     logging.debug("finished")

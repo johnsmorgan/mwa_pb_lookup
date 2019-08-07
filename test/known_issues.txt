@@ -1,3 +1,0 @@
-Offringa's beam considers zenith to be:
-Zenith: 0.0937798 RA, -26.7009 dec, 0 HA.
-Presumably some kind of epoch-of-date thing. This means that the primary beams seems slightly offset from one another.
