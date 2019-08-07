@@ -50,7 +50,7 @@ def get_meta(obsid_str):
     meta_hdus = fits.open("%s.metafits" % obsid_str)
     gridnum = meta_hdus[0].header['GRIDNUM']
     start_lst = meta_hdus[0].header['LST']
-    lst = start_lst + 360*meta_hdus[0].header['Exposure']/86164.1
+    lst = start_lst + 360.0*meta_hdus[0].header['Exposure']/2/86164.1
     return gridnum, lst
 
 def tidy_spline(spline, dtype):
