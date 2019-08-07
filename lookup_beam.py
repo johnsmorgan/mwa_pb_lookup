@@ -9,11 +9,15 @@ from scipy.interpolate import RectBivariateSpline
 
 from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.coordinates import Longitude
+from astropy.coordinates import Longitude, SkyCoord, EarthLocation, AltAz
+from astropy.time import Time
 from astropy import units as u
 
-N_POL=2
+N_POL = 2
 POLS = ("XX", "YY")
+
+# MWA location from CONV2UVFITS/convutils.h
+LOCATION = EarthLocation.from_geodetic(lat=-26.703319*u.deg, lon=116.67081*u.deg, height=377*u.m)
 
 def trap(n):
     """
@@ -46,12 +50,20 @@ def mhz_to_index_weight(chans, freq_mhz):
     weight1 = 1-(freq-chans[i-1])/np.float(chans[i]-chans[i-1])
     return i-1, weight1
 
-def get_meta(obsid_str):
+def get_meta_lst(obsid_str):
     meta_hdus = fits.open("%s.metafits" % obsid_str)
     gridnum = meta_hdus[0].header['GRIDNUM']
     start_lst = meta_hdus[0].header['LST']
-    lst = start_lst + 360*meta_hdus[0].header['Exposure']/86164.1
+    lst = start_lst + 360*meta_hdus[0].header['EXPOSURE']/86164.1
     return gridnum, lst
+
+def get_meta(obsid_str):
+    meta_hdus = fits.open("%s.metafits" % obsid_str)
+    gridnum = meta_hdus[0].header['GRIDNUM']
+    start_time = meta_hdus[0].header['DATE-OBS']
+    duration = meta_hdus[0].header['EXPOSURE']*u.s
+    t = Time(start_time, format='isot', scale='utc') + 0.5*duration
+    return gridnum, t
 
 def tidy_spline(spline, dtype):
     """
@@ -81,7 +93,7 @@ def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
     # However this seems to work
     beams = {}
     for p, pol in enumerate(POLS):
-        b = RectBivariateSpline(x=beam_file['dec_scale'][...], y=beam_file['ha_scale'][...], z=beam_xy[p])
+        b = RectBivariateSpline(x=beam_file['az_scale'][...], y=beam_file['el_scale'][...], z=beam_xy[p])
         beams[pol] = tidy_spline(b, np.float32)
     return beams
 
@@ -95,6 +107,11 @@ def header_to_pixel_radec(header):
 
 def ra_to_ha(ra, lst):
     return Longitude((lst-ra)*u.deg, wrap_angle=180*u.deg).deg
+
+def radec_to_altaz(ra, dec, t, location=LOCATION):
+    radec = SkyCoord(ra*u.deg, dec*u.deg)
+    altaz = radec.transform_to(AltAz(obstime=t, location=location))
+    return altaz.alt.deg, altaz.az.deg
 
 if __name__ == '__main__':
     try:
@@ -174,7 +191,7 @@ if __name__ == '__main__':
 
     # get metadata
     logging.debug("getting metadata")
-    gridnum, lst = get_meta(obsid)
+    gridnum, t = get_meta(obsid)
 
     #open beam file
     logging.debug("generate spline from beam file")
@@ -196,18 +213,18 @@ if __name__ == '__main__':
     logging.debug("calculate pixel ra, dec")
     ra, dec = header_to_pixel_radec(header)
     logging.debug("convert to ha")
-    ha = ra_to_ha(ra, lst)
+    alt, az = radec_to_altaz(ra, dec, t)
 
     # store metadata in fits header
     hdus[0].header['PBVER'] = df.attrs['VERSION']
     hdus[0].header['PBPATH'] = opts.beam_path
-    hdus[0].header['PBLST'] = lst
+    hdus[0].header['PBTIME'] = t.isot
     hdus[0].header['PBGRIDN'] = gridnum
 
     # get values for each fits image pix
     for pol in POLS:
         logging.debug("interpolating beams for %s" % pol)
-        hdus[0].data = beams[pol](dec, ha, data.shape)
+        hdus[0].data = beams[pol](alt, az, data.shape)
         logging.debug("writing %s beam to disk" % pol)
         hdus.writeto("%s%s%s" % (out_prefix, pol, out_suffix))
     logging.debug("finished")
