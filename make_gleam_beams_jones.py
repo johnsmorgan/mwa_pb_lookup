@@ -67,7 +67,6 @@ SWEETSPOTS = range(197)
 
 sweet_dict = json.load(open("sweetspots.json"))
 delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
-print delays
 assert sorted(delays.keys()) == SWEETSPOTS
 # Generate grid of all Az and El coordinates
 az_scale = np.linspace(0, 360, 360)
