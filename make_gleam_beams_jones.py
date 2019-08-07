@@ -75,6 +75,7 @@ az_scale = np.linspace(0, 360, 360)
 #cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
 #alt_scale = np.arccos(cosalt_scale)
 alt_scale = np.linspace(0, 90, 90) # cos of altitude (also sin of zenith angle)
+print alt_scale
 az, alt = np.meshgrid(az_scale, alt_scale)
 
 num_unique_beams = len(SWEETSPOTS)
@@ -93,8 +94,8 @@ else:
     mode = 'w'
 
 with File(OUT_FILE, mode=mode) as df:
-    # actual beam data
     if not opts.dry_run:
+        # actual beam data
         data = df.create_dataset('beams', beam_shape, chunks=chunks, compression='lzf', shuffle=True, dtype=np.complex64)
         # various metadata
         df.attrs['BIBCODE'] = '2017PASA...34...62S'
@@ -146,7 +147,8 @@ with File(OUT_FILE, mode=mode) as df:
             # With jones=False (default) MWA_Tile_full_EE returns 
             # a single array. slowest axes are [theta].shape
             # fastest axes are [2, 2] (the jones matrices)
-            # We reshape it to have just 2 dimensions
+            # We reshape it to have just 2 dimensions so it's easy to
+            # swap axes below.
             jones = MWA_Tile_full_EE([theta], [phi],
                                      freq=freq, delays=delays[s],
                                      zenithnorm=ZENITHNORM, power=POWER,
