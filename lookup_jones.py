@@ -13,7 +13,7 @@ from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_
 N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
 
-def get_avg_beam_spline(beam_file, low_index, n_freq, weights):
+def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
                      axis=0)
