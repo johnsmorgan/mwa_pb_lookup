@@ -93,7 +93,7 @@ def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     # However this seems to work
     beams = {}
     for p, pol in enumerate(POLS):
-        b = RectBivariateSpline(x=beam_file['az_scale'][...], y=beam_file['el_scale'][...], z=beam_xy[p])
+        b = RectBivariateSpline(x=beam_file['alt_scale'][...], y=beam_file['az_scale'][...], z=beam_xy[p])
         beams[pol] = tidy_spline(b, np.float32)
     return beams
 
