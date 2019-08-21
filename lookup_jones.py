@@ -159,10 +159,14 @@ if __name__ == '__main__':
         for comp in ('r', 'i'):
             if stokes_axis is not None:
                      hdus[0].header['CRVAL%d' % stokes_axis] = STOKES[p]
-            hdus[0].header['COMPLEX'] = 'REAL' if comp='r' else 'IMAG'
+            hdus[0].header['COMPLEX'] = 'REAL' if comp=='r' else 'IMAG'
             logging.debug("interpolating beams for %s%s", pol, comp)
             beam = beams[pol][comp](alt, az, data.shape)
             logging.debug("writing %s%s beam to disk", pol, comp)
             hdus[0].data = beam
-            hdus.writeto("%s%s%s%s" % (out_prefix, pol, comp, out_suffix))
+            if not opts.wsclean_names:
+                out = "%s%s%s%s" % (out_prefix, pol, comp, out_suffix)
+            else:
+                out = "%s%s%s%s" % (out_prefix, pol.upper(), comp if comp=='i' else '', out_suffix)
+            hdus.writeto(out)
     logging.debug("finished")
