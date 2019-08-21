@@ -73,6 +73,7 @@ if __name__ == '__main__':
     parser.add_option("--beam_path", default=PB_FILE, dest="beam_path", type="str", help="path to hdf5 file containing beams")
     parser.add_option("--metafits_suffix", default=".metafits", action="count", dest="verbose", help="-v info, -vv debug (default %default")
     parser.add_option("--delete", action="store_true", dest="delete", help="delete output files if they already exist")
+    parser.add_option("-w", "--wsclean_names", action="store_true", dest="wsclean_names", help="use upper case polarisation designations ('XX', 'XY' etc.) and no 'r' for real")
 
     opts, args = parser.parse_args()
 
@@ -102,7 +103,10 @@ if __name__ == '__main__':
 
     for pol in POLS:
         for c in ('r', 'i'):
-            out = "%s%s%s%s" % (out_prefix, pol, c, out_suffix)
+            if not opts.wsclean_names:
+                out = "%s%s%s%s" % (out_prefix, pol, c, out_suffix)
+            else:
+                out = "%s%s%s%s" % (out_prefix, pol.upper(), c if c=='i' else '', out_suffix)
             if os.path.exists(out):
                 if opts.delete:
                     os.remove(out)
