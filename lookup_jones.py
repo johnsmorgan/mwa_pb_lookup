@@ -12,6 +12,8 @@ from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_
 
 N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
+#https://archive.stsci.edu/fits/users_guide/node87.html
+STOKES = (-5, -7, -8, -6)
 
 def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
@@ -139,6 +141,13 @@ if __name__ == '__main__':
     logging.debug("convert to az el")
     alt, az = radec_to_altaz(ra, dec, t)
 
+    # attempt to locate stokes axis
+    stokes_axis = None
+    try:
+        stokes_axis = [header['CTYPE%d' % (i+1)] for i in range(header['NAXIS'])].index('STOKES') + 1
+    except ValueError:
+        logging.warn("STOKES axis can't be found")
+
     # store metadata in fits header
     hdus[0].header['PBVER'] = df.attrs['VERSION']
     hdus[0].header['PBPATH'] = opts.beam_path
@@ -148,6 +157,9 @@ if __name__ == '__main__':
     # get values for each fits image pix
     for p, pol in enumerate(POLS):
         for comp in ('r', 'i'):
+            if stokes_axis is not None:
+                     hdus[0].header['CRVAL%d' % stokes_axis] = STOKES[p]
+            hdus[0].header['COMPLEX'] = 'REAL' if comp='r' else 'IMAG'
             logging.debug("interpolating beams for %s%s", pol, comp)
             beam = beams[pol][comp](alt, az, data.shape)
             logging.debug("writing %s%s beam to disk", pol, comp)
