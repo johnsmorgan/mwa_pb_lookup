@@ -71,7 +71,7 @@ if __name__ == '__main__':
     parser.add_option("-f", "--freq_mhz", dest="freq_mhz", default=None, type="float", help="frequency in MHz")
     parser.add_option("-v", "--verbose", action="count", dest="verbose", help="-v info, -vv debug")
     parser.add_option("--beam_path", default=PB_FILE, dest="beam_path", type="str", help="path to hdf5 file containing beams")
-    parser.add_option("--metafits_suffix", default=".metafits", action="count", dest="verbose", help="-v info, -vv debug (default %default")
+    parser.add_option("--metafits_suffix", dest="metafits_suffix", default=".metafits",  help="metafits suffix (default %default")
     parser.add_option("--delete", action="store_true", dest="delete", help="delete output files if they already exist")
     parser.add_option("-w", "--wsclean_names", action="store_true", dest="wsclean_names", help="use upper case polarisation designations ('XX', 'XY' etc.) and no 'r' for real")
 
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     # get metadata
     logging.debug("getting metadata")
-    gridnum, t = get_meta(obsid)
+    gridnum, t = get_meta(obsid, opts.metafits_suffix)
 
     #open beam file
     logging.debug("generate spline from beam file")

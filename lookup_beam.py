@@ -57,8 +57,8 @@ def get_meta_lst(obsid_str):
     lst = start_lst + 360.0*meta_hdus[0].header['Exposure']/2/86164.1
     return gridnum, lst
 
-def get_meta(obsid_str):
-    meta_hdus = fits.open("%s.metafits" % obsid_str)
+def get_meta(obsid_str, metafits_suffix=".metafits"):
+    meta_hdus = fits.open("%s%s" % (obsid_str, metafits_suffix))
     gridnum = meta_hdus[0].header['GRIDNUM']
     start_time = meta_hdus[0].header['DATE-OBS']
     duration = meta_hdus[0].header['EXPOSURE']*u.s
