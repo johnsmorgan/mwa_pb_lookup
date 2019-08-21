@@ -1,7 +1,7 @@
 ## Overview
 This package provides an alternative, far quicker way of generating MWA primary beams compared with the [standard mwa_pb code](https://github.com/MWATelescope/mwa_pb).
 
-The speedup is enabled by using the standard code to pre-compute all of the beams of interest over the whole sky in coordinates of Hour Angle and Declination on a rectangular grid. Generating the primary beam for a particular observation is then simply a matter of deriving the HA and Dec. of each point of interest and interpolating.
+The speedup is enabled by using the standard code to pre-compute all of the beams of interest over the whole sky in coordinates of Azimuth and Elevation on a rectangular grid. Generating the primary beam for a particular observation is then simply a matter of deriving the observer-centred coordinates of each point of interest and interpolating.
 
 Users should cite the [MWA primary beam paper](http://adsabs.harvard.edu/abs/2017PASA...34...62S) for the beam model the corrections are ultimately derived from. 
 
