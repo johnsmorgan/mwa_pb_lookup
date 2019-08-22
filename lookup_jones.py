@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     #open beam file
     logging.debug("generate spline from beam file")
-    df = File(opts.beam_path)
+    df = File(opts.beam_path, 'r')
     if opts.chan_str is not None:
         low_index, n_chan = coarse_range(df['chans'][...], opts.chan_str)
         weights = trap(n_chan)
