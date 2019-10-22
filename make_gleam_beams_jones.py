@@ -28,6 +28,7 @@ POWER = False
 JONES = True
 INTERP = False
 AREA_NORM = False
+PA_CORRECTION = True
 
 CHANS = ( 56,  57, # bottom edge of GLEAM 69
           62,  63,
@@ -73,7 +74,7 @@ az_scale = np.linspace(0, 360, 360)
 #NB we could make this linear in cos(alt) (\equiv sin(zenith angle), however with 100 points we jump from 0-8 degrees altitude, which seems a little too coarse!
 #cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
 #alt_scale = np.arccos(cosalt_scale)
-alt_scale = np.linspace(0, 90, 90) # cos of altitude (also sin of zenith angle)
+alt_scale = np.linspace(0, 90, 90)
 print alt_scale
 az, alt = np.meshgrid(az_scale, alt_scale)
 
