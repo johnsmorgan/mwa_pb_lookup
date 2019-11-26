@@ -14,6 +14,7 @@ from h5py import File
 from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
+from lookup_beam import LAT
 OUT_FILE_DEFAULT="gleam_jones.hdf5"
 
 parser = OptionParser(usage="generate jones beams")
@@ -66,6 +67,42 @@ for c in range(len(CHANS)/2):
 N_POL = 4
 SWEETSPOTS = range(197)
 
+def matmul2222(mat1, mat2):
+    """
+    multiply 2x2 matrices by a 2x2 matrix with strong assumptions about their structure
+    It is required that mat1.shape[0] == mat2.shape[0] == 4, where this last axis is the 2x2 matrix stored as a 4-vector.
+    The other axes of mat1 and mat2 should match (or at least follow the numpy broadcast rules)
+    The output vector will have the same dtype as mat1 
+    """
+    a  = np.zeros(mat1.shape, dtype= mat1.dtype)
+    a[0, ...] =  mat1[0, ...]*mat2[0, ...]
+    a[0, ...] += mat1[1, ...]*mat2[2, ...]
+    a[1, ...] =  mat1[0, ...]*mat2[1, ...]
+    a[1, ...] += mat1[1, ...]*mat2[3, ...]
+    a[2, ...] =  mat1[2, ...]*mat2[0, ...]
+    a[2, ...] += mat1[3, ...]*mat2[2, ...]
+    a[3, ...] =  mat1[2, ...]*mat2[1, ...]
+    a[3, ...] += mat1[3, ...]*mat2[3, ...]
+    return a
+
+def rotate(mat, pa):
+    """
+    rotate mat by angle pa (where pa is in radians)
+    mat1 can have any number of dimensions N, 
+    but is required that mat1.shape[0] == 4, where this axis is a 2x2 matrix stored as a 4-vector.
+    pa should have N-1 dimensions that match the last N-1 dimensions of mat
+    """
+    s = np.sin(pa)
+    c = np.cos(pa)
+    return matmul2222(mat, np.stack((c, -s, s, c), axis=0))
+
+def azalt_to_pa(az, alt, lat=np.radians(LAT)):
+    """
+    calculate parallactic angle from arbitrary azimuth and elevation
+    """
+    return -np.arctan2(np.sin(az)*np.cos(lat),
+              np.cos(alt)*np.sin(lat) - np.sin(alt)*np.cos(lat)*np.cos(az))
+
 sweet_dict = json.load(open("sweetspots.json"))
 delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
 assert sorted(delays.keys()) == SWEETSPOTS
@@ -77,6 +114,10 @@ az_scale = np.linspace(0, 360, 360)
 alt_scale = np.linspace(0, 90, 90)
 print alt_scale
 az, alt = np.meshgrid(az_scale, alt_scale)
+
+if PA_CORRECTION:
+    # NB pa is in radians whereas az and alt is in degrees
+    pa = azalt_to_pa(np.radians(az), np.radians(alt))
 
 num_unique_beams = len(SWEETSPOTS)
 #num_unique_beams = N
@@ -128,6 +169,7 @@ with File(OUT_FILE, mode=mode) as df:
         df['beams'].attrs['jones'] = JONES
         df['beams'].attrs['interp'] = INTERP
         df['beams'].attrs['area_norm'] = AREA_NORM
+        df['beams'].attrs['pa_correction'] = PA_CORRECTION
 
         df.create_dataset('delays', data=np.array([delays[i] for i in SWEETSPOTS], dtype=np.uint8))
 
@@ -156,7 +198,12 @@ with File(OUT_FILE, mode=mode) as df:
             print jones.shape
             if f % 2:
                 d1 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
+                d = (d1 + d2)/2
+                if PA_CORRECTION:
+                    d = rotate(-d, -pa)
+                    print d.shape
                 if not opts.dry_run:
-                    data[s, f//2, ...] = (d1 + d2)/2
+                    data[s, f//2, ...] = d
             else:
                 d2 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
+        break
