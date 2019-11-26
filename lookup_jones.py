@@ -122,6 +122,9 @@ if __name__ == '__main__':
     #open beam file
     logging.debug("generate spline from beam file")
     df = File(opts.beam_path, 'r')
+    pa_correction = False if not 'pa_correction' in df['beams'].attrs.keys() else df['beams'].attrs['pa_correction']
+    if pa_correction is False:
+        logging.warn("pa_correction is not enabled for this beam file. Absolute polarisation angle will be wrong!")
     if opts.chan_str is not None:
         low_index, n_chan = coarse_range(df['chans'][...], opts.chan_str)
         weights = trap(n_chan)
