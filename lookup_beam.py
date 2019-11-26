@@ -15,9 +15,12 @@ from astropy import units as u
 
 N_POL = 2
 POLS = ("XX", "YY")
-
 # MWA location from CONV2UVFITS/convutils.h
-LOCATION = EarthLocation.from_geodetic(lat=-26.703319*u.deg, lon=116.67081*u.deg, height=377*u.m)
+LAT=-26.703319
+LON=116.67081
+ALT=377.0
+
+LOCATION = EarthLocation.from_geodetic(lat=LAT*u.deg, lon=LON*u.deg, height=ALT*u.m)
 
 def trap(n):
     """
