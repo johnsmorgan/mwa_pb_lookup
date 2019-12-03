@@ -195,6 +195,7 @@ if __name__ == '__main__':
     # get metadata
     logging.debug("getting metadata")
     gridnum, t = get_meta(obsid)
+    logging.info("using centroid time %s", t.isot)
 
     #open beam file
     logging.debug("generate spline from beam file")
