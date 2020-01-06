@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
         # get values for each image pix
         for p, pol in enumerate(POLS):
-            logging.debug("interpolating beams for %s" % pol)
+            logging.debug("interpolating beams for %s", pol)
             beam[p] = beams[pol](alt, az, beam_shape[1:])
         logging.debug("closing hdf5 file")
     logging.debug("finished")
