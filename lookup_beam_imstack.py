@@ -68,6 +68,10 @@ if __name__ == '__main__':
         print beam_shape
         if "beam" in group.keys():
             assert group['beam'].shape == tuple(beam_shape), "Error, beam already exists and is the wrong shape %s %s" % (group['beam'].shape, beam_shape)
+            if opts.overwrite:
+                logging.warn("Overwriting existing beam")
+            else:
+                raise RuntimeError, "Beam already exists. User --overwrite to overwrite"
             beam = group['beam']
         else:
             beam = group.create_dataset("beam", beam_shape, dtype=np.float32, compression='lzf', shuffle=True)
