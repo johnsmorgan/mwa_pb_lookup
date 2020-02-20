@@ -10,13 +10,13 @@ import logging
 import json
 import numpy as np
 from optparse import OptionParser
-
 from h5py import File
-
 from primary_beam import MWA_Tile_full_EE
+
 OUT_FILE_DEFAULT="gleam_xx_yy.hdf5"
 
 logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
+
 parser = OptionParser(usage="generate jones beams")
 parser.add_option("-n", "--dry_run", action="store_true", dest="dry_run", help="don't write to file")
 
@@ -64,10 +64,10 @@ for c in range(len(CHANS)/2):
     FREQS.append(640000*(CHANS[2*c]+CHANS[2*c+1]))
 
 N_POL = 2
-SWEETSPOTS = range(197)
+SWEETSPOTS = list(range(197))
 
 sweet_dict = json.load(open("sweetspots.json"))
-delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
+delays = {int(k): v for k, v in sweet_dict['delays'].items()}
 assert sorted(delays.keys()) == SWEETSPOTS
 # Generate grid of all Az and El coordinates
 az_scale = np.linspace(0, 360, 360)
