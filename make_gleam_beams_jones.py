@@ -206,4 +206,3 @@ with File(OUT_FILE, mode=mode) as df:
                     data[s, f//2, ...] = d
             else:
                 d2 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
-        break
