@@ -10,10 +10,9 @@ import logging
 import json
 import numpy as np
 from optparse import OptionParser
-
 from h5py import File
-
 from primary_beam import MWA_Tile_full_EE
+
 OUT_FILE_DEFAULT="gleam_xx_yy.hdf5"
 
 logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)

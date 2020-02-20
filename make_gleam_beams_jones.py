@@ -9,11 +9,10 @@ import os
 import json
 import numpy as np
 from optparse import OptionParser
-
 from h5py import File
-
 from primary_beam import MWA_Tile_full_EE
 from lookup_beam import LAT
+
 OUT_FILE_DEFAULT="gleam_jones.hdf5"
 
 logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
