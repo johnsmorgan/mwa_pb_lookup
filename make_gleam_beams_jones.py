@@ -6,6 +6,7 @@ the beams for the two neighbouring coarse channels are averaged together with eq
 
 """
 import os
+import logging
 import json
 import numpy as np
 from optparse import OptionParser

@@ -156,4 +156,3 @@ with File(OUT_FILE, mode=mode) as df:
             else:
                 d3 = rx[0].reshape(shape)
                 d4 = ry[0].reshape(shape)
-        break
