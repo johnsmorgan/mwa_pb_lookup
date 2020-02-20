@@ -16,6 +16,7 @@ from lookup_beam import LAT
 OUT_FILE_DEFAULT="gleam_jones.hdf5"
 
 logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
+
 parser = OptionParser(usage="generate jones beams")
 parser.add_option("-n", "--dry_run", action="store_true", dest="dry_run", help="don't write to file")
 
