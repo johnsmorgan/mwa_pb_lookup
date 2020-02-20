@@ -63,15 +63,16 @@ if __name__ == '__main__':
     with File(imstack_path, 'a') as imstack:
         group = imstack[chan_str]
         data_shape = list(group['image'].shape)
-        print data_shape
+        logging.debug("data_shape %s", data_shape)
         beam_shape = data_shape[:-1] + [1] # just one beam for all timesteps for now
-        print beam_shape
+        logging.debug("beam_shape %s", beam_shape)
         if "beam" in group.keys():
             assert group['beam'].shape == tuple(beam_shape), "Error, beam already exists and is the wrong shape %s %s" % (group['beam'].shape, beam_shape)
             if opts.overwrite:
                 logging.warn("Overwriting existing beam")
             else:
-                raise RuntimeError, "Beam already exists. User --overwrite to overwrite"
+                raise RuntimeError("Beam already exists. User --overwrite to overwrite")
+
             beam = group['beam']
         else:
             beam = group.create_dataset("beam", beam_shape, dtype=np.float32, compression='lzf', shuffle=True)

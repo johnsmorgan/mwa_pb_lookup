@@ -113,7 +113,7 @@ if __name__ == '__main__':
                 if opts.delete:
                     os.remove(out)
                 else:
-                    raise RuntimeError, "%s exists" % out
+                    raise RuntimeError("%s exists" % out)
 
     # get metadata
     logging.debug("getting metadata")

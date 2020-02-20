@@ -17,6 +17,7 @@ from primary_beam import MWA_Tile_full_EE
 from lookup_beam import LAT
 OUT_FILE_DEFAULT="gleam_jones.hdf5"
 
+logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
 parser = OptionParser(usage="generate jones beams")
 parser.add_option("-n", "--dry_run", action="store_true", dest="dry_run", help="don't write to file")
 
@@ -112,7 +113,6 @@ az_scale = np.linspace(0, 360, 360)
 #cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
 #alt_scale = np.arccos(cosalt_scale)
 alt_scale = np.linspace(0, 90, 90)
-print alt_scale
 az, alt = np.meshgrid(az_scale, alt_scale)
 
 if PA_CORRECTION:
@@ -178,10 +178,10 @@ with File(OUT_FILE, mode=mode) as df:
     d2 = np.nan*np.ones(shape, dtype=np.complex64)
     # generate beams
     for s in SWEETSPOTS:
-        print "Sweetspot %d" % s
+        logging.debug("Sweetspot %d", s)
         for f, freq in enumerate(CHAN_FREQS):
-            print freq
-            print delays[s]
+            logging.debug("freq: %s", freq)
+            logging.debug("delays: %s", delays[s])
             #if azel[0] > 45:
             #    continue
 
@@ -195,13 +195,13 @@ with File(OUT_FILE, mode=mode) as df:
                                      freq=freq, delays=delays[s],
                                      zenithnorm=ZENITHNORM, power=POWER,
                                      jones=JONES, interp=INTERP).reshape(len(theta), N_POL)
-            print jones.shape
+            logging.debug("jones.shape: %s", jones.shape)
             if f % 2:
                 d1 = jones.swapaxes(0, 1).reshape(beam_shape[2:])
                 d = (d1 + d2)/2
                 if PA_CORRECTION:
                     d = rotate(-d, -pa)
-                    print d.shape
+                    logging.debug("d.shape: %s ", d.shape)
                 if not opts.dry_run:
                     data[s, f//2, ...] = d
             else:

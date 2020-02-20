@@ -38,18 +38,18 @@ def coarse_range(chans, coarse_str):
     lower = np.argwhere(chans == edge_freq_hz[0]).flatten()
     upper = np.argwhere(chans == edge_freq_hz[1]).flatten()
     if len(lower) == 0:
-        raise IndexError, "No match for lower coarse chan %d" % int_chans[0]
+        raise IndexError("No match for lower coarse chan %d" % int_chans[0])
     if len(upper) == 0:
-        raise IndexError, "No match for upper coarse chan %d" % int_chans[1]
+        raise IndexError("No match for upper coarse chan %d" % int_chans[1])
     return lower[0], upper[0]-lower[0]+1
 
 def mhz_to_index_weight(chans, freq_mhz):
     freq = 1e6*freq_mhz
     i = np.searchsorted(chans, freq)
     if i == 0:
-        raise ValueError, "Frequency %f below lowest channel %f" % (freq, chans[0])
+        raise ValueError("Frequency %f below lowest channel %f" % (freq, chans[0]))
     if i == len(chans):
-        raise ValueError, "Frequency %f above highest channel %f" % (freq, chans[-1])
+        raise ValueError("Frequency %f above highest channel %f" % (freq, chans[-1]))
     weight1 = 1-(freq-chans[i-1])/np.float(chans[i]-chans[i-1])
     return i-1, weight1
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
             if opts.delete:
                 os.remove(out)
             else:
-                raise RuntimeError, "%s exists" % out
+                raise RuntimeError("%s exists" % out)
 
     # get metadata
     logging.debug("getting metadata")
@@ -227,8 +227,8 @@ if __name__ == '__main__':
 
     # get values for each fits image pix
     for pol in POLS:
-        logging.debug("interpolating beams for %s" % pol)
+        logging.debug("interpolating beams for %s", pol)
         hdus[0].data = beams[pol](alt, az, data.shape)
-        logging.debug("writing %s beam to disk" % pol)
+        logging.debug("writing %s beam to disk", pol)
         hdus.writeto("%s%s%s" % (out_prefix, pol, out_suffix))
     logging.debug("finished")

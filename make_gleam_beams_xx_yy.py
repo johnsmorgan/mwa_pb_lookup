@@ -6,6 +6,7 @@ the beams for the two neighbouring coarse channels are averaged together with eq
 
 """
 import os
+import logging
 import json
 import numpy as np
 from optparse import OptionParser
@@ -16,6 +17,7 @@ from sweet_dict import delays
 from primary_beam import MWA_Tile_full_EE
 OUT_FILE_DEFAULT="gleam_xx_yy.hdf5"
 
+logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
 parser = OptionParser(usage="generate jones beams")
 parser.add_option("-n", "--dry_run", action="store_true", dest="dry_run", help="don't write to file")
 
@@ -74,7 +76,6 @@ az_scale = np.linspace(0, 360, 360)
 #cosalt_scale = np.linspace(0, 1, 100) # cos of altitude (also sin of zenith angle)
 #alt_scale = np.arccos(cosalt_scale)
 alt_scale = np.linspace(0, 90, 90) # cos of altitude (also sin of zenith angle)
-print alt_scale
 az, alt = np.meshgrid(az_scale, alt_scale)
 
 num_unique_beams = len(SWEETSPOTS)
@@ -133,10 +134,10 @@ with File(OUT_FILE, mode=mode) as df:
     d4 = np.nan*np.ones(shape)
     # generate beams
     for s in SWEETSPOTS:
-        print "Sweetspot %d" % s
+        logging.debug("Sweetspot %d", s)
         for f, freq in enumerate(CHAN_FREQS):
-            print freq
-            print delays[s]
+            logging.debug("freq: %s", freq)
+            logging.debug("delays: %s", delays[s])
             #if azel[0] > 45:
             #    continue
 
@@ -147,7 +148,7 @@ with File(OUT_FILE, mode=mode) as df:
                                        freq=freq, delays=delays[s],
                                        zenithnorm=ZENITHNORM, power=POWER,
                                        jones=JONES, interp=INTERP)
-            print rx.shape
+            logging.debug("rx.shape: %s", rx.shape)
             if f % 2:
                 d1 = rx[0].reshape(shape)
                 d2 = ry[0].reshape(shape)
@@ -156,3 +157,4 @@ with File(OUT_FILE, mode=mode) as df:
             else:
                 d3 = rx[0].reshape(shape)
                 d4 = ry[0].reshape(shape)
+        break
