@@ -64,10 +64,10 @@ for c in range(len(CHANS)/2):
     FREQS.append(640000*(CHANS[2*c]+CHANS[2*c+1]))
 
 N_POL = 2
-SWEETSPOTS = range(197)
+SWEETSPOTS = list(range(197))
 
 sweet_dict = json.load(open("sweetspots.json"))
-delays = {int(k): v for k, v in sweet_dict['delays'].iteritems()}
+delays = {int(k): v for k, v in sweet_dict['delays'].items()}
 assert sorted(delays.keys()) == SWEETSPOTS
 # Generate grid of all Az and El coordinates
 az_scale = np.linspace(0, 360, 360)
