@@ -11,7 +11,6 @@ import numpy as np
 from optparse import OptionParser
 
 from h5py import File
-from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
 from lookup_beam import LAT

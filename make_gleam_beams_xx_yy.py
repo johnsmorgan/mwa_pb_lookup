@@ -12,7 +12,6 @@ import numpy as np
 from optparse import OptionParser
 
 from h5py import File
-from sweet_dict import delays
 
 from primary_beam import MWA_Tile_full_EE
 OUT_FILE_DEFAULT="gleam_xx_yy.hdf5"
