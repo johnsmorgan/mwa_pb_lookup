@@ -15,6 +15,16 @@ POLS = ("xx", "xy", "yx", "yy")
 #https://archive.stsci.edu/fits/users_guide/node87.html
 STOKES = (-5, -7, -8, -6)
 
+
+try:
+    PB_FILE = os.environ['MWA_PB_JONES']
+except:
+    try:
+        PB_FILE = os.environ['MWA_PB_LOOKUP']
+    except KeyError:
+        PB_FILE = ""
+
+
 def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     assert beam_file['beams'].shape[2] == N_POL, "Beam file does not contain 4 polarisations. Not a Jones matrix file!"
     beam_xy = np.sum(np.nan_to_num(beam_file['beams'][gridnum, low_index:low_index+n_freq, ...])*weights.reshape(n_freq, 1, 1, 1),
@@ -33,6 +43,34 @@ def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
             beams[pol][comp] = tidy_spline(b, np.float32)
     return beams
 
+def gleamx_beam_lookup(ras, decs, gridnum, time, freq):
+    """Return the anntenuation or sources at RA/Dec for a given time/delay/freq in a 
+    manner similar to the mwapy.pb function. 
+
+    x,y = beam_value(data[args.racol][indices], data[args.decol][indices], t, delays, freq)
+
+    Args:
+        ras (np.ndarray): RA positions of sources
+        decs (np.ndarray): Dec positions of sources
+        gridnum (int): The MWA gridnum of the pointing position
+        time (astropy.time.Time): Central time of the observation
+        freq (float): Frequency of observation, in Hertz
+    """
+    assert PB_FILE != "", "MWA Beam HDF5 file not configure, ensure either MWA_PB_BEAM or MWA_PB_LOOKUP is set"
+
+    df = File(PB_FILE, 'r')
+
+    low_index, weight1 = mhz_to_index_weight(df['chans'][...], freq / 1_000_000)
+    weights = np.array((weight1, 1-weight1))
+    beams = get_avg_beam_spline(df, gridnum, low_index, N_POL, weights)
+
+    alt, az = radec_to_altaz(ras, decs, time)
+    xx = beams['xx'](alt, az, ras.shape)
+    xx = beams['xy'](alt, az, ras.shape)
+    xx = beams['yx'](alt, az, ras.shape)
+    yy = beams['yy'](alt, az, ras.shape)
+
+    return xx, xy, yx, yy
 
 if __name__ == '__main__':
     try:
