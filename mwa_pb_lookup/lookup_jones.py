@@ -8,7 +8,7 @@ from optparse import OptionParser #NB zeus does not have argparse!
 from scipy.interpolate import RectBivariateSpline
 
 from astropy.io import fits
-from lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, radec_to_altaz
+from .lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, radec_to_altaz
 
 N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
@@ -43,7 +43,7 @@ def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
             beams[pol][comp] = tidy_spline(b, np.float32)
     return beams
 
-def gleamx_beam_lookup(ras, decs, gridnum, time, freq):
+def gleamx_jones_lookup(ras, decs, gridnum, time, freq):
     """Return the anntenuation or sources at RA/Dec for a given time/delay/freq in a 
     manner similar to the mwapy.pb function. 
 
@@ -56,21 +56,23 @@ def gleamx_beam_lookup(ras, decs, gridnum, time, freq):
         time (astropy.time.Time): Central time of the observation
         freq (float): Frequency of observation, in Hertz
     """
-    assert PB_FILE != "", "MWA Beam HDF5 file not configure, ensure either MWA_PB_BEAM or MWA_PB_LOOKUP is set"
+    assert PB_FILE != "", "MWA Beam HDF5 file not configure, ensure either MWA_PB_JONES or MWA_PB_LOOKUP is set"
 
     df = File(PB_FILE, 'r')
 
     low_index, weight1 = mhz_to_index_weight(df['chans'][...], freq / 1_000_000)
     weights = np.array((weight1, 1-weight1))
-    beams = get_avg_beam_spline(df, gridnum, low_index, N_POL, weights)
+    # beams = get_avg_beam_spline(df, gridnum, low_index, N_POL, weights)
+    beams = get_avg_beam_spline(df, gridnum, low_index, 2, weights)
 
     alt, az = radec_to_altaz(ras, decs, time)
-    xx = beams['xx'](alt, az, ras.shape)
-    xx = beams['xy'](alt, az, ras.shape)
-    xx = beams['yx'](alt, az, ras.shape)
-    yy = beams['yy'](alt, az, ras.shape)
+    
+    results = {}
+    for p in POLS:
+        for c in ('r','i'):
+            results[(p, c)] = beams[p][c](alt, az, ras.shape)
 
-    return xx, xy, yx, yy
+    return results
 
 if __name__ == '__main__':
     try:
