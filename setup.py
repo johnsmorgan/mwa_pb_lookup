@@ -11,7 +11,7 @@ reqs = [
 setup(
     name='mwa_pb_lookup',
     version='1.0',
-    author="John Morgan",
+    author=["John Morgan", "Tim Galvin"],
     description="This package provides an alternative, far quicker way of generating MWA primary beams compared with the standard mwa_pb code.",
     url="https://github.com/johnsmorgan/mwa_pb_lookup",
     long_description=open('README.md').read(),

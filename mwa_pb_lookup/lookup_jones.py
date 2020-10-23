@@ -44,7 +44,7 @@ def get_avg_beam_spline(beam_file, gridnum, low_index, n_freq, weights):
     return beams
 
 def gleamx_jones_lookup(ras, decs, gridnum, time, freq):
-    """Return the anntenuation or sources at RA/Dec for a given time/delay/freq in a 
+    """Return the attenuation of sources at RA/Dec for a given time/delay/freq in a 
     manner similar to the mwapy.pb function. 
 
     x,y = beam_value(data[args.racol][indices], data[args.decol][indices], t, delays, freq)

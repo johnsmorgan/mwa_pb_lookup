@@ -125,7 +125,7 @@ def radec_to_altaz(ra, dec, t, location=LOCATION):
     return altaz.alt.deg, altaz.az.deg
 
 def gleamx_beam_lookup(ras, decs, gridnum, time, freq):
-    """Return the anntenuation or sources at RA/Dec for a given time/delay/freq in a 
+    """Return the attenuation of sources at RA/Dec for a given time/delay/freq in a 
     manner similar to the mwapy.pb function. 
 
     x,y = beam_value(data[args.racol][indices], data[args.decol][indices], t, delays, freq)
