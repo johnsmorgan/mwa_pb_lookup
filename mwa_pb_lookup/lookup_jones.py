@@ -74,11 +74,6 @@ def gleamx_jones_lookup(ras, decs, gridnum, time, freq):
     return results
 
 if __name__ == '__main__':
-    try:
-        PB_FILE = os.environ['MWA_PB_LOOKUP']
-    except KeyError:
-        PB_FILE = ""
-
     parser = OptionParser(usage="usage: obsid suffix [out_prefix] [out_suffix]" +
                           """
                           read input fits image and metafits and produce XX and YY beams with same dimensions as fits image
@@ -195,7 +190,7 @@ if __name__ == '__main__':
         logging.warn("STOKES axis can't be found")
 
     # store metadata in fits header
-    hdus[0].header['PBVER'] = df.attrs['VERSION']
+    hdus[0].header['PBVER'] = df.attrs['VERSION'].decode('utf-8')
     hdus[0].header['PBPATH'] = opts.beam_path
     hdus[0].header['PBTIME'] = t.isot
     hdus[0].header['PBGRIDN'] = gridnum
