@@ -8,13 +8,12 @@ from optparse import OptionParser #NB zeus does not have argparse!
 from scipy.interpolate import RectBivariateSpline
 
 from astropy.io import fits
-from .lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, radec_to_altaz
+from mwa_pb_lookup.lookup_beam import trap, coarse_range, mhz_to_index_weight, get_meta, tidy_spline, header_to_pixel_radec, radec_to_altaz
 
 N_POL = 4
 POLS = ("xx", "xy", "yx", "yy")
 #https://archive.stsci.edu/fits/users_guide/node87.html
 STOKES = (-5, -7, -8, -6)
-
 
 try:
     PB_FILE = os.environ['MWA_PB_JONES']
