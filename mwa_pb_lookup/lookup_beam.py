@@ -191,6 +191,9 @@ if __name__ == '__main__':
 
     opts, args = parser.parse_args()
 
+    if opts.verbose is None:
+        opts.verbose = 0
+
     if len(args) < 2:
         parser.error("incorrect number of arguments")
     obsid = args[0]
