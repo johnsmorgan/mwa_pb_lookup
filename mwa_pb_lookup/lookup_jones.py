@@ -113,7 +113,8 @@ if __name__ == '__main__':
 
     opts, args = parser.parse_args()
 
-    if opts.verbose is None:
+    # see note below
+    if opts.verbose is None or not isinstance(opts.verbose, int):
         opts.verbose = 0
 
     if len(args) < 2:
@@ -137,6 +138,9 @@ if __name__ == '__main__':
 
     if opts.verbose == 1:
         logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.INFO)
+    
+    # have gotten a few type errors here about '>' being incompatible between str and int
+    # not obvious to me as to why, and dont want to figure out optparse
     elif opts.verbose > 1:
         logging.basicConfig(format='%(asctime)s-%(levelname)s %(message)s', level=logging.DEBUG)
 
