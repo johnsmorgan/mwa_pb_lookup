@@ -194,7 +194,10 @@ if __name__ == '__main__':
         logging.warn("STOKES axis can't be found")
 
     # store metadata in fits header
-    hdus[0].header['PBVER'] = df.attrs['VERSION'].decode('utf-8')
+    try:
+        hdus[0].header['PBVER'] = df.attrs['VERSION']
+    except:
+        hdus[0].header['PBVER'] = df.attrs['VERSION'].decode('utf-8')
     hdus[0].header['PBPATH'] = opts.beam_path
     hdus[0].header['PBTIME'] = t.isot
     hdus[0].header['PBGRIDN'] = gridnum

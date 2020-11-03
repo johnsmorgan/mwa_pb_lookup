@@ -257,7 +257,11 @@ if __name__ == '__main__':
     alt, az = radec_to_altaz(ra, dec, t)
 
     # store metadata in fits header
-    hdus[0].header['PBVER'] = df.attrs['VERSION'].decode('utf-8')
+    try:
+        hdus[0].header['PBVER'] = df.attrs['VERSION']
+    except:
+        hdus[0].header['PBVER'] = df.attrs['VERSION'].decode('utf-8')
+    
     hdus[0].header['PBPATH'] = opts.beam_path
     hdus[0].header['PBTIME'] = t.isot
     hdus[0].header['PBGRIDN'] = gridnum
