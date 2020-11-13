@@ -5,6 +5,8 @@ The speedup is enabled by using the standard code to pre-compute all of the beam
 
 Users should cite the [MWA primary beam paper](http://adsabs.harvard.edu/abs/2017PASA...34...62S) for the beam model the corrections are ultimately derived from. 
 
+Environment variables `MWA_PB_BEAM` and `MWA_PB_JONES` can be set to the paths of the correspond `xx_yy.hdf5` and `jones.hdf5` files. 
+
 ## Lookup files
 The precomputed beams are stored in hdf5 format. Example scripts for doing the pre-computation are included in the package.  They may be either 'XX' and 'YY' power beams, or Jones matrices.
 
