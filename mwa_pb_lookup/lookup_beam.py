@@ -165,6 +165,11 @@ def beam_lookup_1d(ras, decs, gridnum, time, freq):
 
     df = File(PB_FILE, "r")
 
+    if not isinstance(ras, np.ndarray):
+        ras = np.array(ras)
+    if not isinstance(decs, np.ndarray):
+        decs = np.array(decs)
+
     low_index, weight1 = mhz_to_index_weight(df["chans"][...], freq / 1_000_000)
     weights = np.array((weight1, 1 - weight1))
     beams = get_avg_beam_spline(df, gridnum, low_index, N_POL, weights)
