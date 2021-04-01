@@ -242,9 +242,8 @@ if __name__ == "__main__":
     parser.add_option(
         "--metafits_suffix",
         default=".metafits",
-        action="count",
-        dest="verbose",
-        help="-v info, -vv debug (default %default",
+        dest="metafits_suffix",
+        help="metafits suffix (default %default)",
     )
     parser.add_option(
         "--delete",
@@ -254,10 +253,6 @@ if __name__ == "__main__":
     )
 
     opts, args = parser.parse_args()
-
-    # see note below
-    if opts.verbose is None or not isinstance(opts.verbose, int):
-        opts.verbose = 0
 
     if len(args) < 2:
         parser.error("incorrect number of arguments")
@@ -300,7 +295,7 @@ if __name__ == "__main__":
 
     # get metadata
     logging.debug("getting metadata")
-    gridnum, t = get_meta(obsid)
+    gridnum, t = get_meta(obsid, opts.metafits_suffix)
     logging.info("using centroid time %s", t.isot)
 
     # open beam file
