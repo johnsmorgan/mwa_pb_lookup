@@ -28,7 +28,7 @@ if __name__ == '__main__':
                           """
                             produce beam for  image stack
                           """)
-    parser.add_option("-v", "--verbose", action="count", dest="verbose", help="-v info, -vv debug")
+    parser.add_option("-v", "--verbose", action="count", default=0, dest="verbose", help="-v info, -vv debug")
     parser.add_option("--beam_path", default=PB_FILE, dest="beam_path", type="str", help="path to hdf5 file containing beams")
     parser.add_option("--overwrite", action="store_true", dest="overwrite", help="delete output files if they already exist")
 

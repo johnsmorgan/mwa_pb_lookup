@@ -230,7 +230,7 @@ if __name__ == "__main__":
         help="frequency in MHz",
     )
     parser.add_option(
-        "-v", "--verbose", action="count", dest="verbose", help="-v info, -vv debug"
+        "-v", "--verbose", action="count", default=0, dest="verbose", help="-v info, -vv debug"
     )
     parser.add_option(
         "--beam_path",
