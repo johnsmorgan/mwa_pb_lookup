@@ -87,7 +87,7 @@ def coarse_range(chans, coarse_str):
     dfreq = np.mean(np.diff(chans[lower:upper+1])) # Should be the same, but let's take the mean
     offset = (edge_freq_hz[0] - chans[lower])/dfreq
     # Trapezoidal interpolation/integration method currently requires the top and bottom offsets to be the same
-    top_offset = (edge_freq_hz[1] - chans[upper-1])/dfreq
+    top_offset = ((edge_freq_hz[1] - chans[upper-1])/dfreq) % 1.
     if np.abs(offset-top_offset)>0.001:
         raise ValueError("Fractional offsets between edge frequencies appear to be different at the top and bottom of the band.  Does your requested subband cover a multiple of 7.68 MHz?")
 
