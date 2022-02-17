@@ -57,14 +57,6 @@ def coarse_range(chans, coarse_str):
     int_chans = [int(c) for c in coarse_str.split("-")]
     edge_freq_hz = (int_chans[0] * 1280000 - 640000, int_chans[1] * 1280000 + 640000)
 
-    #lower = np.argwhere(chans == edge_freq_hz[0]).flatten()
-    #upper = np.argwhere(chans == edge_freq_hz[1]).flatten()
-    #if len(lower) == 0:
-    #    raise IndexError("No match for lower coarse chan %d" % int_chans[0])
-    #if len(upper) == 0:
-    #    raise IndexError("No match for upper coarse chan %d" % int_chans[1])
-    #return lower[0], upper[0] - lower[0] + 1
-
     lower = np.argmin(np.abs(chans-edge_freq_hz[0]))
     if chans[lower]>edge_freq_hz[0]: lower-=1
     if lower<0:
