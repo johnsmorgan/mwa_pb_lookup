@@ -32,26 +32,17 @@ except:
     except KeyError:
         PB_FILE = ""
 
-
-def trap(n):
-    """
-    return normalised trapezium
-    """
-    x = np.ones((n,), dtype=np.float32)
-    x[0] = x[-1] = 0.5
-    x /= sum(x)
-    return x
-
-def trap2(n, offset):
+def trap(n, offset):
     """
     return normalised trapezium of weights to find an average over a piece-wise linear function, defined at points separated by a constant width.  A fractional offset from the defined points is allowed (can be 0).
     """
+    x = np.ones((n,), dtype=np.float32)
     if n<2:
         raise ValueError("Edge frequencies matched to %d look-up table frequencies only.  Does your requested subband cover a multiple of 7.68 MHz?" % (n))
     if offset==0:
-      x=trap(n)
+      x[0] = x[-1] = 0.5
+      x /= sum(x)
     else:
-      x = np.ones((n,), dtype=np.float32)
       x[0]=0.5*(1-offset)**2
       x[-1]=offset**2/2.
       if n==3: # weights[1]==weights[-2] so they add, and no internal average terms
@@ -340,7 +331,7 @@ if __name__ == "__main__":
     df = File(opts.beam_path, "r")
     if opts.chan_str is not None:
         low_index, n_chan, offset = coarse_range(df["chans"][...], opts.chan_str)
-        weights = trap2(n_chan, offset)
+        weights = trap(n_chan, offset)
         logging.info(
             "averaging channels %s Hz with weights %s",
             df["chans"][low_index : low_index + n_chan],
