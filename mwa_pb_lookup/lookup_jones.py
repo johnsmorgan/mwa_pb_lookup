@@ -9,7 +9,7 @@ from scipy.interpolate import RectBivariateSpline
 
 from astropy.io import fits
 from mwa_pb_lookup.lookup_beam import (
-    trap2,
+    trap,
     coarse_range,
     mhz_to_index_weight,
     get_meta,
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         )
     if opts.chan_str is not None:
         low_index, n_chan, offset = coarse_range(df["chans"][...], opts.chan_str)
-        weights = trap2(n_chan, offset)
+        weights = trap(n_chan, offset)
         logging.info(
             "averaging channels %s Hz with weights %s",
             df["chans"][low_index : low_index + n_chan],
