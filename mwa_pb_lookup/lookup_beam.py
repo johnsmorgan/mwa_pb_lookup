@@ -32,29 +32,49 @@ except:
     except KeyError:
         PB_FILE = ""
 
-
-def trap(n):
+def trap(n, offset):
     """
-    return normalised trapezium
+    return normalised trapezium of weights to find an average over a piece-wise linear function, defined at points separated by a constant width.  A fractional offset from the defined points is allowed (can be 0).
     """
     x = np.ones((n,), dtype=np.float32)
-    x[0] = x[-1] = 0.5
-    x /= sum(x)
+    if n<2:
+        raise ValueError("Edge frequencies matched to %d look-up table frequencies only.  Does your requested subband cover a multiple of 7.68 MHz?" % (n))
+    if offset==0:
+      x[0] = x[-1] = 0.5
+      x /= sum(x)
+    else:
+      x[0]=0.5*(1-offset)**2
+      x[-1]=offset**2/2.
+      if n==3: # weights[1]==weights[-2] so they add, and no internal average terms
+        x[1]=0.5+offset-offset**2
+      else:
+        x[1]=0.5*(2-offset**2)
+        x[-2]=0.5+offset*(1-offset/2.)
+      x /= (n-2)
     return x
-
 
 def coarse_range(chans, coarse_str):
     int_chans = [int(c) for c in coarse_str.split("-")]
     edge_freq_hz = (int_chans[0] * 1280000 - 640000, int_chans[1] * 1280000 + 640000)
 
-    lower = np.argwhere(chans == edge_freq_hz[0]).flatten()
-    upper = np.argwhere(chans == edge_freq_hz[1]).flatten()
-    if len(lower) == 0:
-        raise IndexError("No match for lower coarse chan %d" % int_chans[0])
-    if len(upper) == 0:
-        raise IndexError("No match for upper coarse chan %d" % int_chans[1])
-    return lower[0], upper[0] - lower[0] + 1
+    lower = np.argmin(np.abs(chans-edge_freq_hz[0]))
+    if chans[lower]>edge_freq_hz[0]: lower-=1
+    if lower<0:
+        raise ValueError("Requested channel %d below lowest look-up table channel %f" % (int_chans[0], chans[0]))
+    upper = np.argmin(np.abs(chans-edge_freq_hz[1]))
+    if chans[upper]<edge_freq_hz[1]: upper+=1
+    if upper>=len(chans):
+        raise ValueError("Requested channel %d above highest look-up table channel %f" % (int_chans[1], chans[-1]))
+    
+    # Calculate relative offset between lowest requested channel and look-up table match
+    dfreq = np.mean(np.diff(chans[lower:upper+1])) # Should be the same, but let's take the mean
+    offset = (edge_freq_hz[0] - chans[lower])/dfreq
+    # Trapezoidal interpolation/integration method currently requires the top and bottom offsets to be the same
+    top_offset = ((edge_freq_hz[1] - chans[upper-1])/dfreq) % 1.
+    if np.abs(offset-top_offset)>0.001:
+        raise ValueError("Fractional offsets between edge frequencies appear to be different at the top and bottom of the band.  Does your requested subband cover a multiple of 7.68 MHz?")
 
+    return lower, upper - lower + 1, offset
 
 def mhz_to_index_weight(chans, freq_mhz):
     freq = 1e6 * freq_mhz
@@ -302,8 +322,8 @@ if __name__ == "__main__":
     logging.debug("generate spline from beam file")
     df = File(opts.beam_path, "r")
     if opts.chan_str is not None:
-        low_index, n_chan = coarse_range(df["chans"][...], opts.chan_str)
-        weights = trap(n_chan)
+        low_index, n_chan, offset = coarse_range(df["chans"][...], opts.chan_str)
+        weights = trap(n_chan, offset)
         logging.info(
             "averaging channels %s Hz with weights %s",
             df["chans"][low_index : low_index + n_chan],

@@ -253,8 +253,8 @@ if __name__ == "__main__":
             "pa_correction is not enabled for this beam file. Absolute polarisation angle will be wrong!"
         )
     if opts.chan_str is not None:
-        low_index, n_chan = coarse_range(df["chans"][...], opts.chan_str)
-        weights = trap(n_chan)
+        low_index, n_chan, offset = coarse_range(df["chans"][...], opts.chan_str)
+        weights = trap(n_chan, offset)
         logging.info(
             "averaging channels %s Hz with weights %s",
             df["chans"][low_index : low_index + n_chan],
