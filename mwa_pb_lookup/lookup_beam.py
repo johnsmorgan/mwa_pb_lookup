@@ -63,7 +63,7 @@ def mhz_to_index_weight(chans, freq_mhz):
         raise ValueError("Frequency %f below lowest channel %f" % (freq, chans[0]))
     if i == len(chans):
         raise ValueError("Frequency %f above highest channel %f" % (freq, chans[-1]))
-    weight1 = 1 - (freq - chans[i - 1]) / np.float(chans[i] - chans[i - 1])
+    weight1 = 1 - (freq - chans[i - 1]) / np.float32(chans[i] - chans[i - 1])
     return i - 1, weight1
 
 
